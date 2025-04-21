@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hustler Trading Bot - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.2/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-gray-100" x-data="dashboard()">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Hustler Trading Bot</h1>
+                <div class="flex items-center space-x-4">
+                    <button @click="darkMode = !darkMode" class="p-2 rounded-full hover:bg-blue-700">
+                        <svg x-show="!darkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <svg x-show="darkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                    <span class="font-medium">Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-grow flex">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white shadow-md" :class="{'dark:bg-gray-800 dark:text-white': darkMode}">
+                <nav class="p-4">
+                    <ul class="space-y-2">
+                        <li>
+                            <a @click="setActiveTab('dashboard')" class="flex items-center p-2 rounded hover:bg-gray-100" :class="{'bg-blue-100 text-blue-600': activeTab === 'dashboard', 'dark:hover:bg-gray-700': darkMode}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a @click="setActiveTab('stocks')" class="flex items-center p-2 rounded hover:bg-gray-100" :class="{'bg-blue-100 text-blue-600': activeTab === 'stocks', 'dark:hover:bg-gray-700': darkMode}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                                </svg>
+                                Stocks
+                            </a>
+                        </li>
+                        <li>
+                            <a @click="setActiveTab('signals')" class="flex items-center p-2 rounded hover:bg-gray-100" :class="{'bg-blue-100 text-blue-600': activeTab === 'signals', 'dark:hover:bg-gray-700': darkMode}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Signals
+                            </a>
+                        </li>
+                        <li>
+                            <a @click="setActiveTab('news')" class="flex items-center p-2 rounded hover:bg-gray-100" :class="{'bg-blue-100 text-blue-600': activeTab === 'news', 'dark:hover:bg-gray-700': darkMode}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                                </svg>
+                                News
+                            </a>
+                        </li>
+                        <li>
+                            <a @click="setActiveTab('settings')" class="flex items-center p-2 rounded hover:bg-gray-100" :class="{'bg-blue-100 text-blue-600': activeTab === 'settings', 'dark:hover:bg-gray-700': darkMode}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="flex-grow p-6" :class="{'dark:bg-gray-900 dark:text-white': darkMode}">
+                <!-- Dashboard Tab -->
+                <div x-show="activeTab === 'dashboard'">
+                    <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <!-- Stats Cards -->
+                        <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium">Signals Today</h3>
+                                    <p class="text-3xl font-bold">5</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium">Successful Signals</h3>
+                                    <p class="text-3xl font-bold">78%</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium">Stocks Tracked</h3>
+                                    <p class="text-3xl font-bold">5</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Performance Chart -->
+                        <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                            <h3 class="text-lg font-medium mb-4">Signal Performance</h3>
+                            <canvas id="performanceChart" height="250"></canvas>
+                        </div>
+                        
+                        <!-- Recent Signals -->
+                        <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                            <h3 class="text-lg font-medium mb-4">Recent Signals</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200" :class="{'dark:divide-gray-700': darkMode}">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Symbol</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Signal</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Price</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200" :class="{'dark:divide-gray-700': darkMode}">
+                                        <template x-for="signal in recentSignals" :key="signal.id">
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap" x-text="signal.symbol"></td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                                        :class="{
+                                                            'bg-green-100 text-green-800': signal.type === 'BUY',
+                                                            'bg-red-100 text-red-800': signal.type === 'SELL',
+                                                            'bg-yellow-100 text-yellow-800': signal.type === 'HOLD'
+                                                        }"
+                                                        x-text="signal.type">
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap" x-text="'$' + signal.price.toFixed(2)"></td>
+                                                <td class="px-6 py-4 whitespace-nowrap" x-text="signal.time"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stocks Tab -->
+                <div x-show="activeTab === 'stocks'">
+                    <h2 class="text-2xl font-bold mb-6">Stocks</h2>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 mb-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium">Tracked Stocks</h3>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                Add Stock
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200" :class="{'dark:divide-gray-700': darkMode}">
+                                <thead>
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Symbol</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Price</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Change</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Volume</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" :class="{'dark:text-gray-400': darkMode}">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200" :class="{'dark:divide-gray-700': darkMode}">
+                                    <template x-for="stock in stocks" :key="stock.symbol">
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap font-medium" x-text="stock.symbol"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap" x-text="'$' + stock.price.toFixed(2)"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span :class="stock.change >= 0 ? 'text-green-600' : 'text-red-600'">
+                                                    <span x-text="(stock.change >= 0 ? '+' : '') + stock.change.toFixed(2) + '%'"></span>
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap" x-text="stock.volume.toLocaleString()"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <button class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+                                                <button class="text-red-600 hover:text-red-900">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signals Tab -->
+                <div x-show="activeTab === 'signals'">
+                    <h2 class="text-2xl font-bold mb-6">Trading Signals</h2>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 mb-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium">Generate Signals</h3>
+                            <div class="flex space-x-2">
+                                <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    Generate All
+                                </button>
+                                <button class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                    Send to Telegram
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Select Stock
+                                </label>
+                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}">
+                                    <option value="">All Stocks</option>
+                                    <template x-for="stock in stocks" :key="stock.symbol">
+                                        <option :value="stock.symbol" x-text="stock.symbol"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    LLM Provider
+                                </label>
+                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}">
+                                    <option value="openai">OpenAI</option>
+                                    <option value="deepseek">DeepSeek (Local)</option>
+                                    <option value="mock">Mock (Testing)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <h3 class="text-lg font-medium mb-4">Recent Signals</h3>
+                        
+                        <div class="space-y-6">
+                            <template x-for="signal in allSignals" :key="signal.id">
+                                <div class="border rounded-lg p-4" :class="{'dark:border-gray-700': darkMode}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="flex items-center">
+                                                <h4 class="text-xl font-bold" x-text="signal.symbol"></h4>
+                                                <span class="ml-2 px-2 py-1 text-sm font-semibold rounded-full"
+                                                    :class="{
+                                                        'bg-green-100 text-green-800': signal.type === 'BUY',
+                                                        'bg-red-100 text-red-800': signal.type === 'SELL',
+                                                        'bg-yellow-100 text-yellow-800': signal.type === 'HOLD'
+                                                    }"
+                                                    x-text="signal.type">
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-gray-500" :class="{'dark:text-gray-400': darkMode}" x-text="signal.time"></p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-lg font-bold" x-text="'$' + signal.price.toFixed(2)"></p>
+                                            <p class="text-sm" :class="signal.change >= 0 ? 'text-green-600' : 'text-red-600'" x-text="(signal.change >= 0 ? '+' : '') + signal.change.toFixed(2) + '%'"></p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <h5 class="font-medium mb-2">Rationale:</h5>
+                                        <p class="text-gray-700" :class="{'dark:text-gray-300': darkMode}" x-text="signal.rationale"></p>
+                                    </div>
+                                    
+                                    <div class="mt-4 flex justify-end">
+                                        <button class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Tab -->
+                <div x-show="activeTab === 'news'">
+                    <h2 class="text-2xl font-bold mb-6">Financial News</h2>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 mb-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium">Filter News</h3>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                Refresh
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Stock Symbol
+                                </label>
+                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}">
+                                    <option value="">All Stocks</option>
+                                    <template x-for="stock in stocks" :key="stock.symbol">
+                                        <option :value="stock.symbol" x-text="stock.symbol"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Source
+                                </label>
+                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}">
+                                    <option value="">All Sources</option>
+                                    <option value="marketaux">Marketaux</option>
+                                    <option value="twitter">Twitter</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Sentiment
+                                </label>
+                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}">
+                                    <option value="">All</option>
+                                    <option value="positive">Positive</option>
+                                    <option value="neutral">Neutral</option>
+                                    <option value="negative">Negative</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <h3 class="text-lg font-medium mb-4">Latest News</h3>
+                        
+                        <div class="space-y-6">
+                            <template x-for="article in newsArticles" :key="article.id">
+                                <div class="border rounded-lg p-4" :class="{'dark:border-gray-700': darkMode}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="text-lg font-medium" x-text="article.title"></h4>
+                                            <p class="text-sm text-gray-500" :class="{'dark:text-gray-400': darkMode}">
+                                                <span x-text="article.source"></span> • 
+                                                <span x-text="article.time"></span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span class="px-2 py-1 text-sm font-semibold rounded-full"
+                                                :class="{
+                                                    'bg-green-100 text-green-800': article.sentiment > 0.2,
+                                                    'bg-yellow-100 text-yellow-800': article.sentiment >= -0.2 && article.sentiment <= 0.2,
+                                                    'bg-red-100 text-red-800': article.sentiment < -0.2
+                                                }"
+                                                x-text="article.sentiment > 0.2 ? 'Positive' : (article.sentiment < -0.2 ? 'Negative' : 'Neutral')">
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="mt-2 text-gray-700" :class="{'dark:text-gray-300': darkMode}" x-text="article.description"></p>
+                                    
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        <template x-for="symbol in article.symbols" :key="symbol">
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded" x-text="symbol"></span>
+                                        </template>
+                                    </div>
+                                    
+                                    <div class="mt-4 flex justify-end">
+                                        <a :href="article.url" target="_blank" class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200">
+                                            Read More
+                                        </a>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div x-show="activeTab === 'settings'">
+                    <h2 class="text-2xl font-bold mb-6">Settings</h2>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 mb-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <h3 class="text-lg font-medium mb-4">LLM Configuration</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Provider
+                                </label>
+                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}">
+                                    <option value="openai">OpenAI</option>
+                                    <option value="deepseek">DeepSeek (Local)</option>
+                                    <option value="mock">Mock (Testing)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    API Key
+                                </label>
+                                <input type="password" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}" value="sk-...">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Model Name
+                                </label>
+                                <input type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}" value="gpt-4">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 mb-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <h3 class="text-lg font-medium mb-4">Telegram Configuration</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Bot Token
+                                </label>
+                                <input type="password" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}" value="123456789:...">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Channel ID
+                                </label>
+                                <input type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}" value="@hustler_trading_signals">
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    Test Connection
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6" :class="{'dark:bg-gray-800': darkMode}">
+                        <h3 class="text-lg font-medium mb-4">Data Source Configuration</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Primary Data Source
+                                </label>
+                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}">
+                                    <option value="yahoo">Yahoo Finance</option>
+                                    <option value="alphavantage">Alpha Vantage</option>
+                                    <option value="finnhub">Finnhub</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" :class="{'dark:text-gray-300': darkMode}">
+                                    Poll Interval (seconds)
+                                </label>
+                                <input type="number" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" :class="{'dark:bg-gray-700 dark:border-gray-600': darkMode}" value="60">
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <button class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                    Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function dashboard() {
+            return {
+                darkMode: false,
+                activeTab: 'dashboard',
+                
+                // Mock data
+                stocks: [
+                    { symbol: 'AAPL', price: 175.25, change: 2.34, volume: 32456789 },
+                    { symbol: 'MSFT', price: 350.12, change: 1.25, volume: 18765432 },
+                    { symbol: 'GOOGL', price: 140.87, change: -0.75, volume: 12345678 },
+                    { symbol: 'AMZN', price: 180.45, change: 3.21, volume: 28765432 },
+                    { symbol: 'META', price: 500.32, change: -1.45, volume: 15678901 }
+                ],
+                
+                recentSignals: [
+                    { id: 1, symbol: 'AAPL', type: 'BUY', price: 175.25, time: '2025-04-19 05:30' },
+                    { id: 2, symbol: 'MSFT', type: 'HOLD', price: 350.12, time: '2025-04-19 05:15' },
+                    { id: 3, symbol: 'GOOGL', type: 'SELL', price: 140.87, time: '2025-04-19 05:00' },
+                    { id: 4, symbol: 'AMZN', type: 'BUY', price: 180.45, time: '2025-04-19 04:45' }
+                ],
+                
+                allSignals: [
+                    { 
+                        id: 1, 
+                        symbol: 'AAPL', 
+                        type: 'BUY', 
+                        price: 175.25, 
+                        change: 2.34, 
+                        time: '2025-04-19 05:30',
+                        rationale: 'AAPL shows strong upward momentum with RSI indicating room for growth without being overbought. Recent earnings report exceeded expectations, and the stock is trading above its 20-day EMA.'
+                    },
+                    { 
+                        id: 2, 
+                        symbol: 'MSFT', 
+                        type: 'HOLD', 
+                        price: 350.12, 
+                        change: 1.25, 
+                        time: '2025-04-19 05:15',
+                        rationale: 'MSFT is currently trading within a narrow range with mixed technical indicators. The stock is near resistance levels, suggesting a potential consolidation phase before the next move.'
+                    },
+                    { 
+                        id: 3, 
+                        symbol: 'GOOGL', 
+                        type: 'SELL', 
+                        price: 140.87, 
+                        change: -0.75, 
+                        time: '2025-04-19 05:00',
+                        rationale: 'GOOGL has broken below key support levels with increasing volume. Technical indicators show bearish momentum with RSI trending downward and MACD crossing below the signal line.'
+                    },
+                    { 
+                        id: 4, 
+                        symbol: 'AMZN', 
+                        type: 'BUY', 
+                        price: 180.45, 
+                        change: 3.21, 
+                        time: '2025-04-19 04:45',
+                        rationale: 'AMZN has formed a bullish pattern with strong volume confirmation. The stock has broken above resistance with positive news about expansion of same-day delivery service to more cities.'
+                    }
+                ],
+                
+                newsArticles: [
+                    {
+                        id: 1,
+                        title: 'Apple Reports Strong Quarterly Earnings',
+                        description: 'Apple Inc. reported quarterly earnings that exceeded analyst expectations, driven by strong iPhone sales.',
+                        source: 'Financial News',
+                        time: '2 hours ago',
+                        url: '#',
+                        sentiment: 0.8,
+                        symbols: ['AAPL']
+                    },
+                    {
+                        id: 2,
+                        title: 'Microsoft Cloud Business Continues to Grow',
+                        description: 'Microsoft\'s cloud services division reported continued growth, with Azure revenue up 40% year-over-year.',
+                        source: 'Tech News',
+                        time: '4 hours ago',
+                        url: '#',
+                        sentiment: 0.6,
+                        symbols: ['MSFT']
+                    },
+                    {
+                        id: 3,
+                        title: 'Google Announces New AI Features for Search',
+                        description: 'Google unveiled new artificial intelligence features for its search engine at its annual developer conference.',
+                        source: 'Tech Insider',
+                        time: '6 hours ago',
+                        url: '#',
+                        sentiment: 0.5,
+                        symbols: ['GOOGL']
+                    },
+                    {
+                        id: 4,
+                        title: 'Amazon Expands Same-Day Delivery to More Cities',
+                        description: 'Amazon announced the expansion of its same-day delivery service to 15 additional metropolitan areas.',
+                        source: 'Business News',
+                        time: '8 hours ago',
+                        url: '#',
+                        sentiment: 0.4,
+                        symbols: ['AMZN']
+                    },
+                    {
+                        id: 5,
+                        title: 'Meta Platforms Faces New Privacy Concerns',
+                        description: 'Meta Platforms is facing scrutiny from regulators over new privacy concerns related to its data collection practices.',
+                        source: 'Tech Policy',
+                        time: '10 hours ago',
+                        url: '#',
+                        sentiment: -0.3,
+                        symbols: ['META']
+                    }
+                ],
+                
+                setActiveTab(tab) {
+                    this.activeTab = tab;
+                    
+                    // Initialize charts when dashboard tab is active
+                    if (tab === 'dashboard') {
+                        this.$nextTick(() => {
+                            this.initCharts();
+                        });
+                    }
+                },
+                
+                initCharts() {
+                    // Performance Chart
+                    const ctx = document.getElementById('performanceChart');
+                    if (ctx) {
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                                datasets: [{
+                                    label: 'Signal Accuracy',
+                                    data: [65, 72, 78, 75, 82, 78],
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    tension: 0.3,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        max: 100,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return value + '%';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

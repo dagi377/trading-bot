@@ -1,0 +1,57 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "hustler123",
+    "port": 8080
+  },
+  "telegram": {
+    "bot_token": "",
+    "channel_id": "",
+    "admin_user_ids": []
+  },
+  "data_source": {
+    "primary": "yahoo",
+    "secondary": "alphavantage",
+    "api_keys": {
+      "alphavantage": "",
+      "finnhub": ""
+    }
+  },
+  "llm": {
+    "provider": "openai",
+    "api_key": "",
+    "model_name": "gpt-4",
+    "local_path": "",
+    "max_tokens": 1000,
+    "temperature": 0.7
+  },
+  "stock_symbols": [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "META"
+  ],
+  "trading_hours": {
+    "start_time": "09:30",
+    "end_time": "15:30",
+    "start": "09:30",
+    "end": "15:30",
+    "time_zone": "America/New_York",
+    "weekend": false
+  },
+  "volatility_params": {
+    "min_volatility_percent": 1,
+    "min_expected_roi": 1.5,
+    "stop_loss_percent": 0.5,
+    "bollinger_period": 20,
+    "bollinger_deviation": 2,
+    "rsi_period": 14,
+    "rsi_overbought": 70,
+    "rsi_oversold": 30,
+    "volume_threshold": 150,
+    "confidence_threshold": 0.7
+  },
+  "check_interval": 300,
+  "log_level": "info"
+}

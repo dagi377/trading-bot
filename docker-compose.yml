@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: hustler-postgres
+    environment:
+      POSTGRES_DB: hustler
+      POSTGRES_USER: hustler
+      POSTGRES_PASSWORD: hustlerpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

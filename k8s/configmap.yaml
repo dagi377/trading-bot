@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hustler-config
+data:
+  config.json: |
+    {
+      "questrade_client_id": "",
+      "questrade_refresh_token": "",
+      "llm_api_key": "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",
+      "llm_provider": "openai",
+      "watch_list": ["NVDA", "SHOP", "TD"],
+      "max_loss_per_trade": 30.0,
+      "max_daily_loss": 400.0,
+      "capital_per_stock": 300.0,
+      "db_host": "hustler-postgres",
+      "db_port": 5432,
+      "db_name": "hustler",
+      "db_user": "hustler",
+      "db_password": "hustlerpass",
+      "poll_interval": 5,
+      "log_level": "info",
+      "ui_port": 8080
+    }

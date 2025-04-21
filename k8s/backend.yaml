@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hustler-backend
+  labels:
+    app: hustler
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hustler
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: hustler
+        tier: backend
+    spec:
+      containers:
+      - name: trading-bot
+        image: hustler-trading-bot:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+        - name: QUESTRADE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: hustler-secrets
+              key: questrade-client-id
+        - name: QUESTRADE_REFRESH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hustler-secrets
+              key: questrade-refresh-token
+        - name: LLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hustler-secrets
+              key: llm-api-key
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hustler-secrets
+              key: db-password
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "hustler"
+        - name: DB_USER
+          value: "hustler"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "4000m"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config.json
+          subPath: config.json
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: config-volume
+        configMap:
+          name: hustler-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hustler-backend
+  labels:
+    app: hustler
+    tier: backend
+spec:
+  selector:
+    app: hustler
+    tier: backend
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP

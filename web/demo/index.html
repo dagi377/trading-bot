@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hustler Trading Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        success: {
+                            500: '#22c55e',
+                            600: '#16a34a',
+                        },
+                        danger: {
+                            500: '#ef4444',
+                            600: '#dc2626',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Simplified chart implementation using a smaller library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100" 
+      x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', 
+                currentPage: 'dashboard',
+                showMobileMenu: false }">
+
+    <div x-init="$watch('darkMode', val => {
+        localStorage.setItem('darkMode', val)
+        if (val) document.documentElement.classList.add('dark')
+        else document.documentElement.classList.remove('dark')
+    })"></div>
+
+    <!-- Navbar -->
+    <nav class="bg-white dark:bg-gray-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-xl font-bold text-primary-600 dark:text-primary-400">Hustler Trading</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a @click.prevent="currentPage = 'dashboard'" href="#" 
+                           :class="currentPage === 'dashboard' ? 'border-primary-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700'"
+                           class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Dashboard
+                        </a>
+                        <a @click.prevent="currentPage = 'groups'" href="#" 
+                           :class="currentPage === 'groups' ? 'border-primary-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700'"
+                           class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Trading Groups
+                        </a>
+                        <a @click.prevent="currentPage = 'stocks'" href="#" 
+                           :class="currentPage === 'stocks' ? 'border-primary-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700'"
+                           class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Stock Setup
+                        </a>
+                        <a @click.prevent="currentPage = 'history'" href="#" 
+                           :class="currentPage === 'history' ? 'border-primary-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700'"
+                           class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Trade History
+                        </a>
+                        <a @click.prevent="currentPage = 'settings'" href="#" 
+                           :class="currentPage === 'settings' ? 'border-primary-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700'"
+                           class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Settings
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <button @click="darkMode = !darkMode" class="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
+                        <svg x-show="!darkMode" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                        </svg>
+                        <svg x-show="darkMode" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <div class="ml-4 flex items-center">
+                        <div class="relative">
+                            <div class="flex items-center">
+                                <span class="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    John Trader
+                                </span>
+                                <button class="px-3 py-1 text-sm bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-md">
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile menu button -->
+                    <div class="flex items-center sm:hidden ml-4">
+                        <button @click="showMobileMenu = !showMobileMenu" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div x-show="showMobileMenu" class="sm:hidden" x-cloak>
+            <div class="pt-2 pb-3 space-y-1">
+                <a @click.prevent="currentPage = 'dashboard'; showMobileMenu = false" href="#" 
+                   :class="currentPage === 'dashboard' ? 'bg-primary-50 dark:bg-gray-700 border-primary-500 text-primary-700 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'"
+                   class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    Dashboard
+                </a>
+                <a @click.prevent="currentPage = 'groups'; showMobileMenu = false" href="#" 
+                   :class="currentPage === 'groups' ? 'bg-primary-50 dark:bg-gray-700 border-primary-500 text-primary-700 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'"
+                   class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    Trading Groups
+                </a>
+                <a @click.prevent="currentPage = 'stocks'; showMobileMenu = false" href="#" 
+                   :class="currentPage === 'stocks' ? 'bg-primary-50 dark:bg-gray-700 border-primary-500 text-primary-700 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'"
+                   class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    Stock Setup
+                </a>
+                <a @click.prevent="currentPage = 'history'; showMobileMenu = false" href="#" 
+                   :class="currentPage === 'history' ? 'bg-primary-50 dark:bg-gray-700 border-primary-500 text-primary-700 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'"
+                   class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    Trade History
+                </a>
+                <a @click.prevent="currentPage = 'settings'; showMobileMenu = false" href="#" 
+                   :class="currentPage === 'settings' ? 'bg-primary-50 dark:bg-gray-700 border-primary-500 text-primary-700 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'"
+                   class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    Settings
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Dashboard -->
+        <div x-show="currentPage === 'dashboard'" x-cloak>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Dashboard</h1>
+                <div class="flex space-x-2">
+                    <button class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">New Trading Group</button>
+                    <button class="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Add Stock</button>
+                </div>
+            </div>
+            
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-success-500">
+                    <h2 class="text-lg font-semibold mb-2">Daily P&L</h2>
+                    <p class="text-2xl font-bold text-success-600">$125.50</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Across all trading groups
+                    </p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold mb-2">Open Positions</h2>
+                    <p class="text-2xl font-bold">3</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Active trades
+                    </p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold mb-2">Capital Allocation</h2>
+                    <p class="text-2xl font-bold">$7,000.00</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        of $10,500.00 total capital
+                    </p>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
+                        <div class="bg-primary-600 h-2.5 rounded-full" style="width: 67%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- P&L Chart -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">P&L Performance</h2>
+                <div class="h-80">
+                    <canvas id="pnlChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Active Trading Groups -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold mb-4">Active Trading Groups</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Name
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Capital
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Stocks
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Active Trades
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Daily P&L
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Tech Stocks</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-white">$5,000.00</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">$3,500.00 allocated</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    4
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    2
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-success-600">
+                                        $120.50
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400 mr-3">View</button>
+                                    <button class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Financial Sector</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-white">$3,000.00</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">$2,000.00 allocated</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    3
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    1
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-danger-600">
+                                        -$45.75
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400 mr-3">View</button>
+                                    <button class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">Energy Plays</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-white">$2,500.00</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">$1,500.00 allocated</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    2
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    0
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-white">
+                                        $0.00
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400 mr-3">View</button>
+                                    <button class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Open Positions -->
+            <div>
+                <h2 class="text-lg font-semibold mb-4">Open Positions</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Symbol
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Group
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Quantity
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Entry Price
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Current Price
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    P&L
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">NVDA</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    Tech Stocks
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    10
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    $450.25
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    $462.75
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-success-600">
+                                        $125.00
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400 mr-3">Details</button>
+                                    <button class="text-danger-600 hover:text-danger-900 dark:hover:text-danger-400">Close</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">SHOP</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    Tech Stocks
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    15
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    $75.50
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    $73.25
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-danger-600">
+                                        -$33.75
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400 mr-3">Details</button>
+                                    <button class="text-danger-600 hover:text-danger-900 dark:hover:text-danger-400">Close</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">TD</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    Financial Sector
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    20
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    $82.30
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    $80.00
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-danger-600">
+                                        -$46.00
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400 mr-3">Details</button>
+                                    <button class="text-danger-600 hover:text-danger-900 dark:hover:text-danger-400">Close</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Groups -->
+        <div x-show="currentPage === 'groups'" x-cloak>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Trading Groups</h1>
+                <button class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                    Create New Group
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-semibold">Tech Stocks</h2>
+                        <span class="px-2 py-1 text-xs rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
+                            Active
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Capital</p>
+                            <p class="text-lg font-medium">$5,000.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Max Loss</p>
+                            <p class="text-lg font-medium">$300.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Allocated</p>
+                            <p class="text-lg font-medium">$3,500.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Daily P&L</p>
+                            <p class="text-lg font-medium text-success-600">$120.50</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 mr-4">
+                                4 stocks
+                            </span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                2 active trades
+                            </span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-sm bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-md">
+                                Pause
+                            </button>
+                            <button class="px-3 py-1 text-sm bg-primary-600 text-white rounded-md">
+                                View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-semibold">Financial Sector</h2>
+                        <span class="px-2 py-1 text-xs rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
+                            Active
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Capital</p>
+                            <p class="text-lg font-medium">$3,000.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Max Loss</p>
+                            <p class="text-lg font-medium">$200.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Allocated</p>
+                            <p class="text-lg font-medium">$2,000.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Daily P&L</p>
+                            <p class="text-lg font-medium text-danger-600">-$45.75</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 mr-4">
+                                3 stocks
+                            </span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                1 active trade
+                            </span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-sm bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-md">
+                                Pause
+                            </button>
+                            <button class="px-3 py-1 text-sm bg-primary-600 text-white rounded-md">
+                                View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-semibold">Energy Plays</h2>
+                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                            Paused
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Capital</p>
+                            <p class="text-lg font-medium">$2,500.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Max Loss</p>
+                            <p class="text-lg font-medium">$150.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Allocated</p>
+                            <p class="text-lg font-medium">$1,500.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Daily P&L</p>
+                            <p class="text-lg font-medium">$0.00</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 mr-4">
+                                2 stocks
+                            </span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                0 active trades
+                            </span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-sm bg-success-600 text-white rounded-md">
+                                Resume
+                            </button>
+                            <button class="px-3 py-1 text-sm bg-primary-600 text-white rounded-md">
+                                View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Setup -->
+        <div x-show="currentPage === 'stocks'" x-cloak>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Stock Setup</h1>
+                <button class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                    Save Settings
+                </button>
+            </div>
+            
+            <!-- Stock Search -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Search Stock</h2>
+                <form class="flex space-x-2">
+                    <input
+                        type="text"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
+                        placeholder="Enter stock symbol (e.g., NVDA, SHOP, AAPL, MSFT)"
+                        value="NVDA"
+                    />
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                        Search
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Stock Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 col-span-2">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-xl font-semibold">NVDA</h2>
+                            <p class="text-gray-500 dark:text-gray-400">NVIDIA Corporation</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-bold">$462.75</p>
+                            <p class="text-sm text-success-600">+2.50%</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Daily High</p>
+                            <p class="text-lg font-medium">$465.20</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Daily Low</p>
+                            <p class="text-lg font-medium">$450.10</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Volume</p>
+                            <p class="text-lg font-medium">25.0M</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">RSI</p>
+                            <p class="text-lg font-medium">65.4</p>
+                        </div>
+                    </div>
+                    
+                    <div class="h-64">
+                        <canvas id="stockChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold mb-4">Trading Settings</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Max Capital ($)
+                            </label>
+                            <input
+                                type="number"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                value="1000"
+                                min="0"
+                                step="100"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Max Loss ($)
+                            </label>
+                            <input
+                                type="number"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                value="50"
+                                min="0"
+                                step="10"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Trading Hours (EST)
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input
+                                    type="time"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    value="09:30"
+                                />
+                                <input
+                                    type="time"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    value="16:00"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Technical Indicators -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Technical Indicators</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">RSI (14)</p>
+                        <p class="text-xl font-medium">65.4</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Neutral
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">SMA (20)</p>
+                        <p class="text-xl font-medium">$445.30</p>
+                        <p class="text-xs text-success-600">
+                            Above SMA
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">EMA (50)</p>
+                        <p class="text-xl font-medium">$430.25</p>
+                        <p class="text-xs text-success-600">
+                            Above EMA
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Volume Surge</p>
+                        <p class="text-xl font-medium text-success-600">+15.2%</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Significant volume
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LLM Insights -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-success-500">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-lg font-semibold">LLM Trading Insights</h2>
+                    <div class="flex items-center">
+                        <span class="px-3 py-1 text-sm font-medium rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
+                            BUY
+                        </span>
+                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                            85% confidence
+                        </span>
+                    </div>
+                </div>
+                <p class="text-gray-700 dark:text-gray-300">
+                    NVIDIA shows strong momentum with RSI at 65.4, indicating bullish sentiment without being overbought. The stock is trading above both its 20-day SMA and 50-day EMA, confirming an uptrend. Volume surge of 15.2% suggests increasing buying interest. The semiconductor sector remains strong with AI demand driving growth. Recommend buying with a tight stop loss at $450.
+                </p>
+            </div>
+        </div>
+
+        <!-- Trade History -->
+        <div x-show="currentPage === 'history'" x-cloak>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Trade History</h1>
+                <div class="flex space-x-2">
+                    <button class="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                        Export CSV
+                    </button>
+                    <button class="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                        Export JSON
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Filters</h2>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Date Range
+                        </label>
+                        <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="">All Time</option>
+                            <option value="1d">Last 24 Hours</option>
+                            <option value="7d" selected>Last 7 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                            <option value="90d">Last 90 Days</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Symbol
+                        </label>
+                        <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="">All Symbols</option>
+                            <option value="NVDA">NVDA</option>
+                            <option value="SHOP">SHOP</option>
+                            <option value="AAPL">AAPL</option>
+                            <option value="MSFT">MSFT</option>
+                            <option value="TD">TD</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Trading Group
+                        </label>
+                        <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="">All Groups</option>
+                            <option value="Tech Stocks">Tech Stocks</option>
+                            <option value="Financial Sector">Financial Sector</option>
+                            <option value="Energy Plays">Energy Plays</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Trade Type
+                        </label>
+                        <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="">All Types</option>
+                            <option value="BUY">Buy</option>
+                            <option value="SELL">Sell</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Result
+                        </label>
+                        <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="">All Results</option>
+                            <option value="profit">Profit</option>
+                            <option value="loss">Loss</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold mb-2">Total Trades</h2>
+                    <p class="text-2xl font-bold">24</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-success-500">
+                    <h2 class="text-lg font-semibold mb-2">Net P&L</h2>
+                    <p class="text-2xl font-bold text-success-600">$345.75</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        After $12.50 in fees
+                    </p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold mb-2">Win Rate</h2>
+                    <p class="text-2xl font-bold">62.5%</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        15 profitable trades
+                    </p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold mb-2">Average P&L</h2>
+                    <p class="text-2xl font-bold text-success-600">$14.41</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Per trade
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Trade History Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Date & Time
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Symbol
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Group
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Type
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Quantity
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Entry Price
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Exit Price
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                P&L
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Fees
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                Apr 19, 2025 09:45
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                NVDA
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                Tech Stocks
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
+                                    BUY
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                10
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $450.25
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $462.75
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm text-success-600">
+                                    $125.00
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $1.00
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400">
+                                    Details
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                Apr 18, 2025 14:30
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                SHOP
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                Tech Stocks
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
+                                    BUY
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                15
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $75.50
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $73.25
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm text-danger-600">
+                                    -$33.75
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $0.75
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400">
+                                    Details
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                Apr 18, 2025 10:15
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                TD
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                Financial Sector
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-danger-100 text-danger-800 dark:bg-danger-900 dark:text-danger-200">
+                                    SELL
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                20
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $82.30
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $80.00
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm text-danger-600">
+                                    -$46.00
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                $1.00
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button class="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400">
+                                    Details
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div x-show="currentPage === 'settings'" x-cloak>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Settings</h1>
+                <button class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                    Save All Settings
+                </button>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">User Profile</h2>
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-primary-600 flex items-center justify-center text-white text-xl font-bold">
+                        J
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-lg font-medium">John Trader</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">john.trader@example.com</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Role: Trader
+                        </p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Name
+                        </label>
+                        <input
+                            type="text"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="John Trader"
+                            disabled
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="john.trader@example.com"
+                            disabled
+                        />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Questrade API Integration -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Questrade API Integration</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Client ID
+                        </label>
+                        <input
+                            type="text"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="abc123def456"
+                            placeholder="Enter Questrade Client ID"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Refresh Token
+                        </label>
+                        <input
+                            type="password"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="••••••••••••••••"
+                            placeholder="Enter Questrade Refresh Token"
+                        />
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
+                            Connected
+                        </span>
+                    </div>
+                    <button class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                        Reconnect
+                    </button>
+                </div>
+            </div>
+            
+            <!-- LLM Integration -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">LLM Integration</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            LLM Provider
+                        </label>
+                        <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="openai" selected>OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            API Key
+                        </label>
+                        <input
+                            type="password"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="••••••••••••••••••••••••••••••"
+                            placeholder="Enter OpenAI API Key"
+                        />
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200">
+                            Connected
+                        </span>
+                    </div>
+                    <button class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                        Reconnect
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Default Risk Parameters -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Default Risk Parameters</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Default Max Loss Per Trade ($)
+                        </label>
+                        <input
+                            type="number"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="30"
+                            min="0"
+                            step="5"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Default Max Daily Loss ($)
+                        </label>
+                        <input
+                            type="number"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="400"
+                            min="0"
+                            step="50"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Default Capital Per Stock ($)
+                        </label>
+                        <input
+                            type="number"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="300"
+                            min="0"
+                            step="50"
+                        />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trading Hours -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Trading Hours</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Start Time
+                        </label>
+                        <input
+                            type="time"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="09:30"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            End Time
+                        </label>
+                        <input
+                            type="time"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            value="16:00"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Timezone
+                        </label>
+                        <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="America/New_York" selected>Eastern Time (ET)</option>
+                            <option value="America/Chicago">Central Time (CT)</option>
+                            <option value="America/Denver">Mountain Time (MT)</option>
+                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notification Settings -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold mb-4">Notification Settings</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <input
+                            id="email-notifications"
+                            type="checkbox"
+                            class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                            checked
+                        />
+                        <label for="email-notifications" class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                            Email Notifications
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center mb-2">
+                            <input
+                                id="slack-notifications"
+                                type="checkbox"
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                            />
+                            <label for="slack-notifications" class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                                Slack Notifications
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center mb-2">
+                            <input
+                                id="telegram-notifications"
+                                type="checkbox"
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                            />
+                            <label for="telegram-notifications" class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                                Telegram Notifications
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simplified chart initialization
+            function createSimpleChart(elementId, label, data, color) {
+                const ctx = document.getElementById(elementId);
+                if (!ctx) return;
+                
+                const labels = [];
+                for (let i = 30; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                }
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            borderColor: color,
+                            backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true
+                            },
+                            tooltip: {
+                                enabled: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Generate simple random data
+            function generateRandomData(baseValue, count, volatility) {
+                const data = [];
+                let value = baseValue;
+                
+                for (let i = 0; i < count; i++) {
+                    value = value + (Math.random() * volatility * 2 - volatility);
+                    data.push(value);
+                }
+                
+                return data;
+            }
+            
+            // P&L Chart - simplified
+            const pnlData = generateRandomData(0, 31, 50);
+            createSimpleChart('pnlChart', 'P&L Performance', pnlData, 'rgb(14, 165, 233)');
+            
+            // Stock Chart - simplified
+            const stockData = generateRandomData(450, 31, 5);
+            createSimpleChart('stockChart', 'NVDA Price', stockData, 'rgb(34, 197, 94)');
+        });
+    </script>
+</body>
+</html>

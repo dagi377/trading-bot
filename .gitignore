@@ -1,0 +1,53 @@
+# ----------------------------------------
+# Go build outputs and dependencies
+# ----------------------------------------
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+hustler-trading-bot
+
+# Test binaries
+*.test
+
+# Dependency directories (if you ever vendor)
+vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# ----------------------------------------
+# Node / React frontend
+# ----------------------------------------
+# Dependencies
+/web/frontend/node_modules/
+
+# Production build
+/web/frontend/build/
+
+# ----------------------------------------
+# IDE / Editor files
+# ----------------------------------------
+.vscode/
+.idea/
+.cursor/
+
+# ----------------------------------------
+# Logs, OS files, test results
+# ----------------------------------------
+*.log
+.DS_Store
+Thumbs.db
+ehthumbs.db
+test_results/
+
+# ----------------------------------------
+# Environment / Config
+# ----------------------------------------
+# Optional: ignore your local config, env files, secrets
+config.json
+.env
+.env.local
+.env.*.local 
