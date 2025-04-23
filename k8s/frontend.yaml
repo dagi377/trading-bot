@@ -36,14 +36,7 @@ spec:
       containers:
       - name: frontend
         image: hustler-frontend:latest
-        imagePullPolicy: IfNotPresent
-        resources:
-          requests:
-            cpu: 500m
-            memory: 512Mi
-          limits:
-            cpu: 1000m
-            memory: 1Gi
+        imagePullPolicy: Never  # For local development
         ports:
         - containerPort: 80
         livenessProbe:
@@ -58,3 +51,16 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      volumes:
+      - name: nginx-logs
+        emptyDir: {}

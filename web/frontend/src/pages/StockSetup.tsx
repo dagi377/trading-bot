@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface StockSetupProps {}
 
@@ -125,9 +125,9 @@ const StockSetup: React.FC<StockSetupProps> = () => {
   });
   
   useEffect(() => {
-    if (symbol && mockStockData[symbol]) {
-      setStockData(mockStockData[symbol]);
-      setLLMInsight(mockLLMInsights[symbol]);
+    if (symbol && mockStockData[symbol as keyof typeof mockStockData]) {
+      setStockData(mockStockData[symbol as keyof typeof mockStockData]);
+      setLLMInsight(mockLLMInsights[symbol as keyof typeof mockLLMInsights]);
       
       // Set default settings
       setStockSettings({
@@ -145,9 +145,9 @@ const StockSetup: React.FC<StockSetupProps> = () => {
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchSymbol && mockStockData[searchSymbol]) {
-      setStockData(mockStockData[searchSymbol]);
-      setLLMInsight(mockLLMInsights[searchSymbol]);
+    if (searchSymbol && mockStockData[searchSymbol as keyof typeof mockStockData]) {
+      setStockData(mockStockData[searchSymbol as keyof typeof mockStockData]);
+      setLLMInsight(mockLLMInsights[searchSymbol as keyof typeof mockLLMInsights]);
       
       // Set default settings
       setStockSettings({

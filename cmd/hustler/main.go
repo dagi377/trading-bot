@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/hustler/trading-bot/pkg/api"
 	"github.com/hustler/trading-bot/pkg/config"
 	"github.com/hustler/trading-bot/pkg/data"
 	"github.com/hustler/trading-bot/pkg/llm"
@@ -53,6 +54,14 @@ func main() {
 		llmManager,
 		telegramBot,
 	)
+
+	// Initialize API server
+	server := api.NewServer()
+	go func() {
+		if err := server.Start(":8080"); err != nil {
+			log.Fatalf("Failed to start API server: %v", err)
+		}
+	}()
 
 	// Start market monitor
 	err = marketMonitor.Start()

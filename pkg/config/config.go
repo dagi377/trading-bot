@@ -145,7 +145,7 @@ func CreateDefaultConfig() *Config {
 			EndTime:   "15:30",
 			Start:     "09:30", // For backward compatibility
 			End:       "15:30", // For backward compatibility
-			TimeZone:  "America/New_York",
+			TimeZone:  "UTC",
 			Weekend:   false,
 		},
 		VolatilityParams: VolatilityConfig{

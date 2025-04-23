@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Sidebar from './components/layout/Sidebar';
+import React, { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
+import Sidebar from './components/layout/Sidebar';
+import { useAuth } from './hooks/useAuth';
 import Dashboard from './pages/Dashboard';
-import TradingGroups from './pages/TradingGroups';
-import TradingGroupDetail from './pages/TradingGroupDetail';
+import Settings from './pages/Settings';
 import StockSetup from './pages/StockSetup';
 import TradeHistory from './pages/TradeHistory';
-import Settings from './pages/Settings';
+import TradingGroupDetail from './pages/TradingGroupDetail';
+import TradingGroups from './pages/TradingGroups';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-import { useAuth } from './hooks/useAuth';
 
 const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);

@@ -114,26 +114,26 @@ func (m *MarketMonitor) monitorMarket() {
 			return
 		case <-time.After(time.Until(nextCheckTime)):
 			// Check if within trading hours
-			withinHours, err := m.config.IsWithinTradingHours()
-			if err != nil {
-				log.Printf("Error checking trading hours: %v", err)
-				nextCheckTime = time.Now().Add(time.Minute) // Retry in 1 minute
-				continue
-			}
+			// withinHours, err := m.config.IsWithinTradingHours()
+			// if err != nil {
+			// 	log.Printf("Error checking trading hours: %v", err)
+			// 	nextCheckTime = time.Now().Add(time.Minute) // Retry in 1 minute
+			// 	continue
+			// }
 
-			if !withinHours {
-				log.Println("Outside trading hours, skipping check")
-				// Calculate next check time (next minute)
-				nextCheckTime = time.Now().Add(time.Minute)
-				continue
-			}
+			// if !withinHours {
+			// 	log.Println("Outside trading hours, skipping check")
+			// 	// Calculate next check time (next minute)
+			// 	nextCheckTime = time.Now().Add(time.Minute)
+			// 	continue
+			// }
 
-			// Perform market check
-			log.Println("Performing market check")
-			err = m.performMarketCheck()
-			if err != nil {
-				log.Printf("Error performing market check: %v", err)
-			}
+			// // Perform market check
+			// log.Println("Performing market check")
+			// err = m.performMarketCheck()
+			// if err != nil {
+			// 	log.Printf("Error performing market check: %v", err)
+			// }
 
 			// Calculate next check time
 			nextCheckTime = time.Now().Add(time.Duration(m.config.CheckInterval) * time.Second)

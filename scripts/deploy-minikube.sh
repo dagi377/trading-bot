@@ -30,7 +30,7 @@ docker build -t hustler-trading-bot:latest .
 
 # Build the frontend Docker image
 echo "Building frontend Docker image..."
-cd /Users/dagmfekaduyenealem/Documents/ai/hustler-trading-bot/
+cd /Users/dagmfekaduyenealem/Documents/ai/hustler-trading-bot/web/frontend
 docker build -t hustler-frontend:latest .
 
 # Apply Kubernetes manifests
@@ -40,6 +40,10 @@ kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/secrets.yaml
 kubectl apply -f k8s/postgres.yaml
 kubectl apply -f k8s/backend.yaml
+
+# Delete existing frontend deployment if it exists
+echo "Deleting existing frontend deployment..."
+kubectl delete deployment hustler-frontend --ignore-not-found=true
 kubectl apply -f k8s/frontend.yaml
 kubectl apply -f k8s/ingress.yaml
 
@@ -47,7 +51,7 @@ kubectl apply -f k8s/ingress.yaml
 echo "Waiting for deployments to be ready..."
 kubectl rollout status deployment/hustler-backend
 kubectl rollout status deployment/hustler-frontend
-kubectl rollout status deployment/postgres
+kubectl rollout status deployment/hustler-postgres
 
 # Get the URL
 echo "Getting application URL..."
