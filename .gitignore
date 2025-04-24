@@ -27,6 +27,11 @@ go.work.sum
 # Production build
 /web/frontend/build/
 
+# Frontend build and package directories
+/web/frontend/bin/
+/web/frontend/pkg/
+/web/frontend/public/
+
 # ----------------------------------------
 # IDE / Editor files
 # ----------------------------------------
@@ -50,4 +55,4 @@ test_results/
 config.json
 .env
 .env.local
-.env.*.local 
+.env.*.local
