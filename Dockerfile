@@ -1,9 +1,11 @@
-FROM golang:1.21 as builder
+# Build stage
+FROM golang:1.21 AS builder
 
 WORKDIR /app
 
-# Copy go.mod and go.sum files
+# Copy go mod files
 COPY go.mod ./
+COPY go.sum ./
 
 # Download dependencies
 RUN go mod download
@@ -12,18 +14,18 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o hustler-trading-bot ./cmd/hustler
+RUN CGO_ENABLED=0 GOOS=linux go build -o hustler ./cmd/e2e-test
 
-# Use a minimal alpine image for the final stage
+# Final stage
 FROM alpine:latest
 
 WORKDIR /app
 
-# Copy the binary from the builder stage
-COPY --from=builder /app/hustler-trading-bot .
+# Copy the binary from builder
+COPY --from=builder /app/hustler .
 
-# Expose the UI port
+# Expose port
 EXPOSE 8080
 
 # Run the application
-CMD ["./hustler-trading-bot", "--config", "config.json"]
+CMD ["./hustler"]

@@ -1,39 +1,37 @@
 package api
 
 import (
-	"encoding/json"
+	"database/sql"
+	"log"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
+// Server represents the API server
 type Server struct {
-	router *mux.Router
+	port string
+	db   *sql.DB
+	auth *AuthService
 }
 
-func NewServer() *Server {
-	s := &Server{
-		router: mux.NewRouter(),
-	}
-	s.routes()
-	return s
-}
-
-func (s *Server) routes() {
-	// Health check endpoint
-	s.router.HandleFunc("/api/health", s.handleHealth()).Methods("GET")
-}
-
-func (s *Server) handleHealth() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		response := map[string]string{
-			"status": "healthy",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+// NewServer creates a new API server
+func NewServer(port string, db *sql.DB) *Server {
+	return &Server{
+		port: port,
+		db:   db,
+		auth: NewAuthService(db),
 	}
 }
 
-func (s *Server) Start(addr string) error {
-	return http.ListenAndServe(addr, s.router)
+// Start starts the API server
+func (s *Server) Start() error {
+	// Set up routes
+	http.HandleFunc("/api/login", s.auth.LoginHandler)
+
+	// Protected routes
+	http.HandleFunc("/api/protected", s.auth.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Protected endpoint"))
+	}))
+
+	log.Printf("Starting API server on port %s", s.port)
+	return http.ListenAndServe(":"+s.port, nil)
 }

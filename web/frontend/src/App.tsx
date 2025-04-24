@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import { useAuth } from './hooks/useAuth';
 import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
 import Settings from './pages/Settings';
 import StockSetup from './pages/StockSetup';
 import TradeHistory from './pages/TradeHistory';
 import TradingGroupDetail from './pages/TradingGroupDetail';
 import TradingGroups from './pages/TradingGroups';
-import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
 const App: React.FC = () => {
@@ -47,31 +47,31 @@ const App: React.FC = () => {
       </div>
     );
   }
-  
-  if (!user) {
-    return (
-      <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
-        <Routes>
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<Login />} />
-        </Routes>
-      </div>
-    );
-  }
-  
+
   return (
     <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
-      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      {user && <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />}
       <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6 overflow-auto">
+        {user && <Sidebar />}
+        <main className={`flex-1 p-6 overflow-auto ${!user ? 'w-full' : ''}`}>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/groups" element={<TradingGroups />} />
-            <Route path="/groups/:id" element={<TradingGroupDetail />} />
-            <Route path="/stock-setup/:symbol?" element={<StockSetup />} />
-            <Route path="/history" element={<TradeHistory />} />
-            <Route path="/settings" element={<Settings />} />
+            {!user ? (
+              <>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              </>
+            ) : (
+              <>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/groups" element={<TradingGroups />} />
+                <Route path="/groups/:id" element={<TradingGroupDetail />} />
+                <Route path="/stock-setup/:symbol?" element={<StockSetup />} />
+                <Route path="/history" element={<TradeHistory />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
+            )}
           </Routes>
         </main>
       </div>
